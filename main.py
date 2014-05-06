@@ -89,7 +89,7 @@ def printTableData(reply, rowNumber, results):
 
 def doIt(handler):
   handler.response.headers.add_header("Access-Control-Allow-Origin", "*")
-  handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(handler.request.get('_format', 'text/plain'))
+  handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(handler.request.get('_format'), 'text/plain')
   query = """SELECT title, count, iso FROM (
 SELECT title, count, c.iso iso, RANK() OVER (PARTITION BY iso ORDER BY count DESC) rank
 FROM (
