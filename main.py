@@ -117,7 +117,7 @@ WHERE rank=1
 ORDER BY count DESC;"""
 
   web.response.write(
-    pprint.pparse(runSyncQuery(service, PROJECT_ID, query))
+    pprint.pformat(runSyncQuery(service, PROJECT_ID, query))
   )
 
 
