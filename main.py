@@ -14,7 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import csv
+import pprint
+
+from apiclient.discovery import build
+from google.appengine.api import app_identity
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
+from oauth2client import appengine
+import httplib2
 import webapp2
+
+
+SCOPE = 'https://www.googleapis.com/auth/bigquery'
+PROJECT_ID = app_identity.get_application_id()
+
+credentials = appengine.AppAssertionCredentials(scope=SCOPE)
+http = credentials.authorize(httplib2.Http())
+service = build('bigquery', 'v2', http=http)
+
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -24,27 +42,6 @@ class MainHandler(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
 ], debug=True)
-
-
-
-
-import pprint
-
-from apiclient.discovery import build
-import httplib2
-
-from google.appengine.api import app_identity
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from oauth2client import appengine
-
-
-SCOPE = 'https://www.googleapis.com/auth/bigquery'
-PROJECT_ID = app_identity.get_application_id()
-
-credentials = appengine.AppAssertionCredentials(scope=SCOPE)
-http = credentials.authorize(httplib2.Http())
-service = build('bigquery', 'v2', http=http)
 
 
 # Run a synchronous query, save the results to a table, overwriting the
