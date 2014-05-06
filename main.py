@@ -90,9 +90,9 @@ def printTableData(reply, rowNumber, results):
     results += [[x['v'] for x in row['f']]]
 
 
-def doIt(web):
-  self.response.headers.add_header("Access-Control-Allow-Origin", "*")
-  self.response.headers['Content-Type'] = 'text/csv'
+def doIt(handler):
+  handler.response.headers.add_header("Access-Control-Allow-Origin", "*")
+  handler.response.headers['Content-Type'] = 'text/csv'
   query = """SELECT title, count, iso FROM (
 SELECT title, count, c.iso iso, RANK() OVER (PARTITION BY iso ORDER BY count DESC) rank
 FROM (
@@ -116,7 +116,7 @@ ON b.place_of_birth=c.place
 )
 WHERE rank=1
 ORDER BY count DESC;"""
-  writer = csv.writer(self.response.out)
+  writer = csv.writer(handler.response.out)
   for row in runSyncQuery(service, PROJECT_ID, query):
     writer.writerow(["foo", "foo,bar", "bar"])
 
