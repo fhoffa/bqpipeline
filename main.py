@@ -18,7 +18,7 @@ import webapp2
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-      doIt()
+      doIt(self)
 
 
 app = webapp2.WSGIApplication([
@@ -90,7 +90,7 @@ def printTableData(reply, rowNumber, results):
     results += [[x['v'] for x in row['f']]]
 
 
-def doIt():
+def doIt(web):
 
   query = """SELECT title, count, iso FROM (
 SELECT title, count, c.iso iso, RANK() OVER (PARTITION BY iso ORDER BY count DESC) rank
@@ -116,7 +116,7 @@ ON b.place_of_birth=c.place
 WHERE rank=1
 ORDER BY count DESC;"""
 
-  self.response.write(
+  web.response.write(
     pprint.pparse(runSyncQuery(service, PROJECT_ID, query))
   )
 
