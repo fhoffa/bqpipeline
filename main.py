@@ -115,6 +115,6 @@ WHERE rank=1
 ORDER BY count DESC;"""
   writer = csv.writer(handler.response.out)
   for row in runSyncQuery(service, PROJECT_ID, query):
-    writer.writerow(["foo", "foo,bar", "bar"])
+    writer.writerow(row)
 
 
