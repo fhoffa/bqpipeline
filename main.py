@@ -37,30 +37,30 @@ service = build('bigquery', 'v2', http=http)
 
 class MainHandler(webapp2.RequestHandler):
   def get(self):
-    format = handler.request.get('_format', 'csv_text')
-    handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
-    handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
+    format = self.request.get('_format', 'csv_text')
+    self.response.headers.add_header('Access-Control-Allow-Origin', '*')
+    self.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
   
     query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
     query_results = runSyncQuery(service, PROJECT_ID, query)
     if format.startswith('csv'):
-      writer = csv.writer(handler.response.out)
+      writer = csv.writer(self.response.out)
       for row in query_results:
         writer.writerow(row)
     if format == 'json':
       result = {'query': query}
       result['data'] = query_results
-      handler.response.out.write(json.dumps(result))
+      self.response.out.write(json.dumps(result))
 
 
 class GetConfigHandler(webapp2.RequestHandler):
   def get(self):
-    handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
+    self.response.headers.add_header('Access-Control-Allow-Origin', '*')
     result = {
       'queries': sorted(QUERIES.keys()),
       'periods': sorted(PERIODS.keys()),
     }
-    handler.response.out.write(json.dumps(result))
+    self.response.out.write(json.dumps(result))
     
 
 
