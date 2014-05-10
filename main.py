@@ -16,15 +16,15 @@
 #
 import csv
 import json
-import pprint
 
-from apiclient.discovery import build
+import webapp2
 from google.appengine.api import app_identity
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
-from oauth2client import appengine
+
+from apiclient.discovery import build
 import httplib2
-import webapp2
+from oauth2client import appengine
 
 
 SCOPE = 'https://www.googleapis.com/auth/bigquery'
@@ -36,31 +36,52 @@ service = build('bigquery', 'v2', http=http)
 
 
 class MainHandler(webapp2.RequestHandler):
-    def get(self):
-      doIt(self)
+  def get(self):
+    format = handler.request.get('_format', 'csv_text')
+    handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
+    handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
+  
+    query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
+    query_results = runSyncQuery(service, PROJECT_ID, query)
+    if format.startswith('csv'):
+      writer = csv.writer(handler.response.out)
+      for row in query_results:
+        writer.writerow(row)
+    if format == 'json':
+      result = {'query': query}
+      result['data'] = query_results
+      handler.response.out.write(json.dumps(result))
+
+
+class GetConfigHandler(webapp2.RequestHandler):
+  def get(self):
+    handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
+    result = {
+      'queries': sorted(QUERIES.keys()),
+      'periods': sorted(PERIODS.keys()),
+    }
+    handler.response.out.write(json.dumps(result))
+    
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/get_config', GetConfigHandler),
 ], debug=True)
 
 
-# Run a synchronous query, save the results to a table, overwriting the
-# existing data, and print the first page of results.
-# Default timeout is to wait until query finishes.
 def runSyncQuery (service, projectId, query, timeout=0):
     jobCollection = service.jobs()
     queryData = {'query':query, 'timeoutMs':timeout}
-    queryReply = jobCollection.query(projectId=projectId,
-                                     body=queryData).execute()
-
+    queryReply = jobCollection.query(
+        projectId=projectId, body=queryData).execute()
     jobReference=queryReply['jobReference']
 
     while(not queryReply['jobComplete']):
       queryReply = jobCollection.getQueryResults(
-                          projectId=jobReference['projectId'],
-                          jobId=jobReference['jobId'],
-                          timeoutMs=timeout).execute()
+          projectId=jobReference['projectId'],
+          jobId=jobReference['jobId'],
+          timeoutMs=timeout).execute()
 
     results = []
     if('rows' in queryReply):
@@ -70,9 +91,9 @@ def runSyncQuery (service, projectId, query, timeout=0):
       # Loop through each page of data
       while('rows' in queryReply and currentRow < queryReply['totalRows']):
         queryReply = jobCollection.getQueryResults(
-                          projectId=jobReference['projectId'],
-                          jobId=jobReference['jobId'],
-                          startIndex=currentRow).execute()
+            projectId=jobReference['projectId'],
+            jobId=jobReference['jobId'],
+            startIndex=currentRow).execute()
         if('rows' in queryReply):
           bqToPlainArray(queryReply, currentRow, results)
           currentRow += len(queryReply['rows'])
@@ -84,22 +105,6 @@ def bqToPlainArray(reply, rowNumber, results):
   for row in reply['rows']:
     results += [[x['v'] for x in row['f']]]
 
-
-def doIt(handler):
-  format = handler.request.get('_format', 'csv_text')
-  handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
-  handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
-
-  query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
-  query_results = runSyncQuery(service, PROJECT_ID, query)
-  if format.startswith('csv'):
-    writer = csv.writer(handler.response.out)
-    for row in query_results:
-      writer.writerow(row)
-  if format == 'json':
-    result = {'query': query}
-    result['data'] = query_results
-    handler.response.out.write(json.dumps(result))
 
 QUERIES = {}
 QUERIES['women_by_country'] = """SELECT title, count, iso FROM (
