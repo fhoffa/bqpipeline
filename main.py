@@ -52,7 +52,7 @@ class MainHandler(webapp2.RequestHandler):
         writer.writerow(row)
     if output_format == 'json':
       result = {'query': query}
-      result['data'] = query_results
+      result['results'] = [{'data': data, 'period': period_key}]
       self.response.out.write(json.dumps(result))
 
 
