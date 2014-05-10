@@ -96,7 +96,7 @@ def doIt(handler):
     writer = csv.writer(handler.response.out)
     for row in query_results:
       writer.writerow(row)
-  if format = 'json':
+  if format == 'json':
     result = {'query': query}
     result['data'] = query_results
     handler.response.out.write(json.dumps(result))
