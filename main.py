@@ -87,11 +87,18 @@ def bqToPlainArray(reply, rowNumber, results):
 def doIt(handler):
   handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
   handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(handler.request.get('_format'), 'text/plain')
-  query = """SELECT title, count, iso, "true" FROM (
+  query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
+  writer = csv.writer(handler.response.out)
+  for row in runSyncQuery(service, PROJECT_ID, query):
+    writer.writerow(row)
+
+
+QUERIES = {}
+QUERIES['women_by_country'] = """SELECT title, count, iso FROM (
 SELECT title, count, c.iso iso, RANK() OVER (PARTITION BY iso ORDER BY count DESC) rank
 FROM (
  SELECT a.title title, SUM(requests) count, b.person person
- FROM [fh-bigquery:wikipedia.pagecounts_20140412_140000] a
+ FROM [%s] a
  JOIN (
    SELECT REGEXP_REPLACE(obj, '/wikipedia/id/', '') title, a.sub person
    FROM [fh-bigquery:freebase20140119.triples_nolang] a
@@ -110,8 +117,6 @@ ON b.place_of_birth=c.place
 )
 WHERE rank=1
 ORDER BY count DESC;"""
-  writer = csv.writer(handler.response.out)
-  for row in runSyncQuery(service, PROJECT_ID, query):
-    writer.writerow(row)
 
-
+PERIODS = {}
+PERIODS['2014/04/12 14:00 UTC'] = 'fh-bigquery:wikipedia.pagecounts_20140412_140000'
