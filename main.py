@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import csv
+import json
 import pprint
 
 from apiclient.discovery import build
@@ -85,13 +86,20 @@ def bqToPlainArray(reply, rowNumber, results):
 
 
 def doIt(handler):
+  format = handler.request.get('_format', 'csv_text')
   handler.response.headers.add_header('Access-Control-Allow-Origin', '*')
-  handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(handler.request.get('_format'), 'text/plain')
-  query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
-  writer = csv.writer(handler.response.out)
-  for row in runSyncQuery(service, PROJECT_ID, query):
-    writer.writerow(row)
+  handler.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
 
+  query = QUERIES['women_by_country'] % PERIODS['2014/04/12 14:00 UTC']
+  query_results = runSyncQuery(service, PROJECT_ID, query)
+  if format.startswith('csv'):
+    writer = csv.writer(handler.response.out)
+    for row in query_results:
+      writer.writerow(row)
+  if format = 'json':
+    result = {'query': query}
+    result['data'] = query_results
+    handler.response.out.write(json.dumps(result))
 
 QUERIES = {}
 QUERIES['women_by_country'] = """SELECT title, count, iso FROM (
@@ -119,4 +127,16 @@ WHERE rank=1
 ORDER BY count DESC;"""
 
 PERIODS = {}
+PERIODS['2013/08'] = 'fh-bigquery:wikipedia.wikipedia_views_201308'
+PERIODS['2014/02/01 00:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140201_00'
+PERIODS['2014/02/11 21:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140211_21'
+PERIODS['2014/02/12 20:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140212_20'
+PERIODS['2014/02/12 21:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140212_21'
+PERIODS['2014/02/12 22:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140212_22'
+PERIODS['2014/02/12 23:00 UTC'] = 'fh-bigquery:wikipedia.wikipedia_views_20140212_23'
+PERIODS['2014/04/10 10:00 UTC'] = 'fh-bigquery:wikipedia.pagecounts_20140410_150000'
+PERIODS['2014/04/11 11:00 UTC'] = 'fh-bigquery:wikipedia.pagecounts_20140411_080000'
+PERIODS['2014/04/12 13:00 UTC'] = 'fh-bigquery:wikipedia.pagecounts_20140412_130000'
 PERIODS['2014/04/12 14:00 UTC'] = 'fh-bigquery:wikipedia.pagecounts_20140412_140000'
+
+
