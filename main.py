@@ -55,18 +55,15 @@ def runSyncQuery (service, projectId, query, timeout=0):
 
     jobReference=queryReply['jobReference']
 
-    # Timeout exceeded: keep polling until the job is complete.
     while(not queryReply['jobComplete']):
-      print 'Job not yet complete...'
       queryReply = jobCollection.getQueryResults(
                           projectId=jobReference['projectId'],
                           jobId=jobReference['jobId'],
                           timeoutMs=timeout).execute()
 
-    # If the result has rows, print the rows in the reply.
     results = []
     if('rows' in queryReply):
-      printTableData(queryReply, 0, results)
+      bqToPlainArray(queryReply, 0, results)
       currentRow = len(queryReply['rows'])
 
       # Loop through each page of data
@@ -76,13 +73,13 @@ def runSyncQuery (service, projectId, query, timeout=0):
                           jobId=jobReference['jobId'],
                           startIndex=currentRow).execute()
         if('rows' in queryReply):
-          printTableData(queryReply, currentRow, results)
+          bqToPlainArray(queryReply, currentRow, results)
           currentRow += len(queryReply['rows'])
     return results
 
 
 
-def printTableData(reply, rowNumber, results):
+def bqToPlainArray(reply, rowNumber, results):
   for row in reply['rows']:
     results += [[x['v'] for x in row['f']]]
 
