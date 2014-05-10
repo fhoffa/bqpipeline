@@ -45,10 +45,10 @@ class MainHandler(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = {'csv': 'text/csv'}.get(format, 'text/plain')
   
     query = QUERIES[query_key] % PERIODS[period_key]
-    query_results = runSyncQuery(service, PROJECT_ID, query)
+    data = runSyncQuery(service, PROJECT_ID, query)
     if output_format.startswith('csv'):
       writer = csv.writer(self.response.out)
-      for row in query_results:
+      for row in data:
         writer.writerow(row)
     if output_format == 'json':
       result = {'query': query}
