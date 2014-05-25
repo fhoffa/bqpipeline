@@ -47,7 +47,7 @@ class MainHandler(webapp2.RequestHandler):
     query = QUERIES[query_key] % PERIODS[period_key]
     data = runSyncQuery(service, PROJECT_ID, query)
     if output_format.startswith('csv'):
-      writer = csv.writer(self.response.out)
+      writer = csv.writer(self.response.out, lineterminator='\n')
       for row in data:
         writer.writerow(row)
     if output_format == 'json':
