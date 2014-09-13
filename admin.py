@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import collections
 import csv
 import json
 
@@ -56,6 +57,7 @@ class UnionQueryHandler(webapp2.RequestHandler):
     selects = ['(SELECT TIMESTAMP("%s:00:00") datehour, * FROM [%s])' % (x[-11:].replace('_', ' '), x) for x in tables]
     union_select = 'SELECT * FROM %s LIMIT 10' % ','.join(selects)
     self.response.out.write(len(tables))
+    self.response.out.write(collections.Counter([x[-11:-3] for x in tables]).most_common())
     self.response.out.write('\n')
     self.response.out.write(union_select)
 
