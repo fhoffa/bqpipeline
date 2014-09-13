@@ -44,7 +44,6 @@ class MainHandler(webapp2.RequestHandler):
       tablename = filename.split("/")[4][:22].replace('-', '_')
       deferred.defer(
         load_table,
-        'bqpipeline',
         'wikipedia_raw_201407',
         tablename,
         'gs:/%s' % filename)
