@@ -65,6 +65,7 @@ class UnionQueryHandler():
 
 app = webapp2.WSGIApplication([
     ('/admin/load', LoadHandler),
+    ('/admin/unionQuery', UnionQueryHandler),
 ], debug=True)
 
 
