@@ -33,7 +33,6 @@ SCOPE = 'https://www.googleapis.com/auth/bigquery'
 PROJECT_ID = app_identity.get_application_id()
 
 
-
 class LoadHandler(webapp2.RequestHandler):
   def get(self):
 
@@ -49,7 +48,8 @@ class LoadHandler(webapp2.RequestHandler):
         'gs:/%s' % filename)
     self.response.out.write(json.dumps(result))
 
-class UnionQueryHandler():
+
+class UnionQueryHandler(webapp2.RequestHandler):
   def get(self):
     table_list = bq_service().tables().list(projectId=PROJECT_ID, datasetId='wikipedia_raw_201407', maxResults=1000).execute()
     tables = ([x['id'] for x in table_list['tables']])
@@ -60,13 +60,10 @@ class UnionQueryHandler():
     self.response.out.write(union_select)
 
   
-
-
 app = webapp2.WSGIApplication([
     ('/admin/load', LoadHandler),
     ('/admin/unionQuery', UnionQueryHandler),
 ], debug=True)
-
 
 
 def bq_service():
