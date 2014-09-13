@@ -34,7 +34,7 @@ PROJECT_ID = app_identity.get_application_id()
 
 
 
-class MainHandler(webapp2.RequestHandler):
+class LoadHandler(webapp2.RequestHandler):
   def get(self):
 
     files = [x.filename for x in gcs.listbucket('/bqpipeline/raw-wikipedia/2014-07/')]
@@ -48,15 +48,13 @@ class MainHandler(webapp2.RequestHandler):
         'wikipedia_raw_201407',
         tablename,
         'gs:/%s' % filename)
-
-  
     self.response.out.write(json.dumps(result))
 
 
 
 
 app = webapp2.WSGIApplication([
-    ('/admin/', MainHandler),
+    ('/admin/load', LoadHandler),
 ], debug=True)
 
 
