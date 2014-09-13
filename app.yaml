@@ -11,6 +11,10 @@ handlers:
 
 - url: .*
   script: main.app
+  
+- url: /_ah/admin.*
+  script: google.appengine.ext.admin.application
+  login: admin
 
 libraries:
 - name: webapp2
