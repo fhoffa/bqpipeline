@@ -32,19 +32,20 @@ from oauth2client import appengine
 
 SCOPE = 'https://www.googleapis.com/auth/bigquery'
 PROJECT_ID = app_identity.get_application_id()
+MONTH = '2014-08'
 
 
 class LoadHandler(webapp2.RequestHandler):
   def get(self):
 
-    files = [x.filename for x in gcs.listbucket('/bqpipeline/raw-wikipedia/2014-07/')]
+    files = [x.filename for x in gcs.listbucket('/bqpipeline/raw-wikipedia/%s/' % MONTH)]
     result = {'files': []}
     for filename in files:
       result['files'].append(filename)
       tablename = filename.split("/")[4][:22].replace('-', '_')
       deferred.defer(
         load_table,
-        'wikipedia_raw_201407',
+        'wikipedia_raw_%s' % MONTH.replace('-', ''),
         tablename,
         'gs:/%s' % filename)
     self.response.out.write(json.dumps(result))
@@ -52,7 +53,8 @@ class LoadHandler(webapp2.RequestHandler):
 
 class UnionQueryHandler(webapp2.RequestHandler):
   def get(self):
-    table_list = bq_service().tables().list(projectId=PROJECT_ID, datasetId='wikipedia_raw_201407', maxResults=1000).execute()
+    table_list = bq_service().tables().list(projectId=PROJECT_ID, 
+      datasetId='wikipedia_raw_%s' % MONTH.replace('-', ''), maxResults=1000).execute()
     tables = ([x['id'] for x in table_list['tables']])
     selects = ['(SELECT TIMESTAMP("%s:00:00") datehour, * FROM [%s])' % (x[-11:].replace('_', ' '), x) for x in tables]
     union_select = 'SELECT * FROM %s LIMIT 10' % ','.join(selects)
