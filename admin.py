@@ -50,7 +50,17 @@ class LoadHandler(webapp2.RequestHandler):
         'gs:/%s' % filename)
     self.response.out.write(json.dumps(result))
 
+class UnionQueryHandler():
+  def get(self):
+    table_list = bq_service().tables().list(projectId=PROJECT_ID, datasetId='wikipedia_raw_201407', maxResults=1000).execute()
+    tables = ([x['id'] for x in table_list['tables']])
+    selects = ['(SELECT TIMESTAMP("%s:00:00") datehour, * FROM [%s])' % (x[-11:].replace('_', ' '), x) for x in tables]
+    union_select = 'SELECT * FROM %s LIMIT 10' % ','.join(selects)
+    self.response.out.write(len(tables))
+    self.response.out.write('\n')
+    self.response.out.write(union_select)
 
+  
 
 
 app = webapp2.WSGIApplication([
