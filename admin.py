@@ -32,7 +32,7 @@ from oauth2client import appengine
 
 SCOPE = 'https://www.googleapis.com/auth/bigquery'
 PROJECT_ID = app_identity.get_application_id()
-MONTH = '2014-08'
+MONTH = '2014-06'
 
 
 class LoadHandler(webapp2.RequestHandler):
